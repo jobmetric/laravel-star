@@ -34,10 +34,7 @@
         "laravel": {
             "providers": [
                 "JobMetric\\Star\\StarServiceProvider"
-            ],
-            "aliases": {
-                "Star": "JobMetric\\Star\\Facades\\Star"
-            }
+            ]
         }
     },
     "minimum-stability": "stable",
