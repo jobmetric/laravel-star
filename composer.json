@@ -1,6 +1,6 @@
 {
     "name": "jobmetric/laravel-star",
-    "description": "This is a star management package for Laravel that you can use in your projects.",
+    "description": "This is a star rating management package for any object in Laravel that you can use in your projects.",
     "type": "library",
     "license": "MIT",
     "keywords": [
