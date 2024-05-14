@@ -82,8 +82,8 @@ trait HasStar
 
         return [
             'type' => $typeData,
-            'star' => $this->starCount(),
-            'avg' => $this->starTo()->avg('star')
+            'star_count' => $this->starCount(),
+            'star_avg' => (float)$this->starTo()->avg('star')
         ];
     }
 
@@ -117,6 +117,18 @@ trait HasStar
     public function withStarCount(): static
     {
         $this->loadCount(['starTo as star_count']);
+
+        return $this;
+    }
+
+    /**
+     * load star avg after a model loaded
+     *
+     * @return static
+     */
+    public function withStarAvg(): static
+    {
+        $this->loadAvg(['starTo as star_avg'], 'star');
 
         return $this;
     }
