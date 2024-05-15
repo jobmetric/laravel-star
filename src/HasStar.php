@@ -83,7 +83,7 @@ trait HasStar
         return [
             'type' => $typeData,
             'star_count' => $this->starCount(),
-            'star_avg' => (float)$this->starTo()->avg('star')
+            'star_avg' => $this->starAvg()
         ];
     }
 
@@ -106,7 +106,7 @@ trait HasStar
      */
     public function starAvg(): float
     {
-        return $this->starTo()->avg('star');
+        return (float) $this->starTo()->avg('star');
     }
 
     /**
