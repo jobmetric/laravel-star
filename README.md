@@ -1,3 +1,20 @@
+[contributors-shield]: https://img.shields.io/github/contributors/jobmetric/laravel-star.svg?style=for-the-badge
+[contributors-url]: https://github.com/jobmetric/laravel-star/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/jobmetric/laravel-star.svg?style=for-the-badge&label=Fork
+[forks-url]: https://github.com/jobmetric/laravel-star/network/members
+[stars-shield]: https://img.shields.io/github/stars/jobmetric/laravel-star.svg?style=for-the-badge
+[stars-url]: https://github.com/jobmetric/laravel-star/stargazers
+[license-shield]: https://img.shields.io/github/license/jobmetric/laravel-star.svg?style=for-the-badge
+[license-url]: https://github.com/jobmetric/laravel-star/blob/master/LICENCE.md
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/majidmohammadian
+
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![MIT License][license-shield]][license-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
+
 # Star for laravel
 
 This is a star rating management package for any object in Laravel that you can use in your projects.
@@ -117,3 +134,7 @@ forget stars
 ```php
 $post->forgetStars();
 ```
+
+## License
+
+The MIT License (MIT). Please see [License File](https://github.com/jobmetric/laravel-star/blob/master/README.md) for more information.
