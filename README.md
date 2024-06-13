@@ -74,6 +74,10 @@ get star average
 
 load star count after a model loaded
 
+```php
+$post->withStarCount();
+```
+
 #### withStarAvg
 
 load star avg after a model loaded
@@ -90,10 +94,26 @@ load stars after models loaded
 
 is stared by user
 
+```php
+$user_id = 1;
+
+$post->isStaredStatusBy($user_id);
+```
+
 #### forgetStar
 
 forget star
 
+```php
+$user_id = 1;
+
+$post->forgetStar($user_id);
+```
+
 #### forgetStars
 
 forget stars
+
+```php
+$post->forgetStars();
+```
