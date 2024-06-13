@@ -1,4 +1,4 @@
-# Like for laravel
+# Star for laravel
 
 This is a star rating management package for any object in Laravel that you can use in your projects.
 
