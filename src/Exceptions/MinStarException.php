@@ -11,6 +11,9 @@ class MinStarException extends Exception
     {
         $minStar = config('star.min_star');
 
-        parent::__construct("Star must be greater than or equal to $minStar, $star given", $code, $previous);
+        parent::__construct(trans('star::base.exceptions.min_star', [
+            'minStar' => $minStar,
+            'star' => $star,
+        ]), $code, $previous);
     }
 }

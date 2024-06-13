@@ -11,6 +11,9 @@ class MaxStarException extends Exception
     {
         $maxStar = config('star.max_star');
 
-        parent::__construct("Star must be less than or equal to $maxStar, $star given", $code, $previous);
+        parent::__construct(trans('star::base.exceptions.max_star', [
+            'maxStar' => $maxStar,
+            'star' => $star,
+        ]), $code, $previous);
     }
 }

@@ -15,6 +15,7 @@ class StarServiceProvider extends PackageCoreServiceProvider
     {
         $package->name('laravel-star')
             ->hasConfig()
+            ->hasTranslation()
             ->hasMigration();
     }
 }
