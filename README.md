@@ -135,6 +135,10 @@ forget stars
 $post->forgetStars();
 ```
 
+## Contributing
+
+Thank you for considering contributing to the Laravel Star! The contribution guide can be found in the [CONTRIBUTING.md](https://github.com/jobmetric/laravel-star/blob/master/CONTRIBUTING.md).
+
 ## License
 
-The MIT License (MIT). Please see [License File](https://github.com/jobmetric/laravel-star/blob/master/README.md) for more information.
+The MIT License (MIT). Please see [License File](https://github.com/jobmetric/laravel-star/blob/master/LICENCE.md) for more information.
