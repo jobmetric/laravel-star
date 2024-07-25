@@ -23,8 +23,6 @@ return new class extends Migration {
 
             $table->timestamps();
         });
-
-        cache()->forget('stars');
     }
 
     /**
@@ -35,7 +33,5 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists(config('star.tables.star'));
-
-        cache()->forget('stars');
     }
 };
