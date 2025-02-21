@@ -13,8 +13,8 @@ return [
     */
 
     'exceptions' => [
-        'max_star' => 'Star must be less than or equal to :maxStar, :star given',
-        'min_star' => 'Star must be greater than or equal to :minStar, :star given',
+        'max_star' => 'ستاره باید کمتر یا مساوی :maxStar، :star داده شده باشد',
+        'min_star' => 'ستاره باید بزرگتر یا مساوی با :minStar، :star داده شده باشد',
     ],
 
 ];
