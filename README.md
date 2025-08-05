@@ -15,125 +15,206 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-# Star for laravel
+# Laravel Star
 
-This is a star rating management package for any object in Laravel that you can use in your projects.
+A modern, flexible, and test-covered Laravel package that allows your models to handle **star rating** functionality (e.g., 1 to 5 stars).  
+This package provides a clean API for both **starable** (e.g., articles, posts) and **starrer** (e.g., users, devices) models.
 
-## Install via composer
+---
 
-Run the following command to pull in the latest version:
+## 💾 Installation
+
+Install via composer:
+
 ```bash
 composer require jobmetric/laravel-star
 ```
 
-## Documentation
-
-This package evolves every day under continuous development and integrates a diverse set of features. It's a must-have asset for Laravel enthusiasts and provides a seamless way to align your projects with basic star and rating models.
-
-In this package, you can use it seamlessly with any model that needs stars and ratings.
-
-Now let's go to the main function.
-
->#### Before doing anything, you must migrate after installing the package by composer.
+Then publish and run the migration:
 
 ```bash
 php artisan migrate
 ```
 
-Meet the `HasStar` class, meticulously designed for integration into your model. This class automates essential tasks, ensuring a streamlined process for:
+---
 
-In the first step, you need to connect this class to your main model.
+## ✨ Usage
+
+### Step 1: Add `HasStar` to your starable model (e.g., `Article`)
 
 ```php
-use JobMetric\Like\HasStar;
+use JobMetric\Star\HasStar;
 
-class Post extends Model
+class Article extends Model
 {
     use HasStar;
 }
 ```
 
-## How is it used?
-
-You can now use the `HasStar` class for your model. The following example shows how to create a new post with ratings and stars:
+### Step 2: Add `CanStar` to your starrer model (e.g., `User`)
 
 ```php
-$post = Post::create([
-    'status' => 'published',
-]);
+use JobMetric\Star\CanStar;
 
-$user_id = 1;
-
-$post->starIt($user_id, $star = 5);
+class User extends Model
+{
+    use CanStar;
+}
 ```
 
-> The `starIt` function is used to rate the post. The first parameter is the user id, and the second parameter is the star rating.
+---
 
-### Now we go to the functions that we have added to our model.
+## ✅ Main Features
 
-#### starTo
-
-star has one relationship
-
-#### starsTo
-
-star has many relationships
-
-#### starCount
-
-get star count
-
-#### starAvg
-
-get star average
-
-#### withStarCount
-
-load star count after a model loaded
+### Add or Update a Star Rating
 
 ```php
-$post->withStarCount();
+$article->addStar(4, $user);
 ```
 
-#### withStarAvg
-
-load star avg after a model loaded
-
-#### withStar
-
-load star or disStar after model loaded
-
-#### withStars
-
-load stars after models loaded
-
-#### isStaredStatusBy
-
-is stared by user
+You can also pass extra options like device ID:
 
 ```php
-$user_id = 1;
-
-$post->isStaredStatusBy($user_id);
+$article->addStar(5, null, ['device_id' => 'abc-123']);
 ```
 
-#### forgetStar
-
-forget star
+### Remove a Star Rating
 
 ```php
-$user_id = 1;
-
-$post->forgetStar($user_id);
+$article->removeStar($user);
+$article->removeStar(null, 'abc-123');
 ```
 
-#### forgetStars
-
-forget stars
+### Check if a Star Exists
 
 ```php
-$post->forgetStars();
+$article->hasStar($user); // true/false
 ```
+
+### Get Star Count and Average
+
+```php
+$article->starCount(); // e.g., 10
+$article->starAvg();   // e.g., 4.3
+```
+
+### Get Summary
+
+```php
+$article->starSummary(); 
+// => collect([5 => 3, 4 => 5, 3 => 2])
+```
+
+### Get Latest Stars
+
+```php
+$article->latestStars(5); // returns latest 5 stars
+```
+
+### Forget Stars (All for a user or device)
+
+```php
+$article->forgetStars($user);
+```
+
+---
+
+## 🎯 Conditional Methods
+
+### Rating Checks
+
+```php
+$article->isRatedAs(4, $user);     // true
+$article->isRatedAbove(3, $user);  // true
+$article->isRatedBelow(5, $user);  // true
+```
+
+### Get Rated Value
+
+```php
+$article->getRatedValue($user); // e.g., 4
+```
+
+---
+
+## 📦 CanStar Feature Set
+
+### Check if a model has starred something
+
+```php
+$user->hasStarred($article); // true/false
+```
+
+### Get rate value
+
+```php
+$user->starredRate($article); // e.g., 5
+```
+
+### Remove star from a model
+
+```php
+$user->removeStarFrom($article);
+```
+
+### Count by Rate or Total
+
+```php
+$user->countStarGiven(5); // e.g., 2
+$user->totalStarsGiven(); // e.g., 12
+```
+
+### Summary of Ratings Given
+
+```php
+$user->starSummary(); 
+// => collect([5 => 4, 3 => 2])
+```
+
+### Models that user has starred
+
+```php
+$user->starredItems(); // Collection of models
+$user->starredItems(Article::class);
+```
+
+### Stars to specific model type
+
+```php
+$user->starsToType(Article::class); // Collection of stars
+```
+
+### Latest Stars Given
+
+```php
+$user->latestStarsGiven(5); // Collection of latest 5 stars
+```
+
+## 🧱 Star Model Columns
+
+| Field           | Description                                 |
+|-----------------|---------------------------------------------|
+| starable_type   | Polymorphic class of starable (e.g., Post)  |
+| starable_id     | ID of the starable model                    |
+| starred_by_type | Polymorphic class of starrer (e.g., User)   |
+| starred_by_id   | ID of the starrer                           |
+| rate            | Star rating (e.g., 1 to 5)                  |
+| ip              | IP address of the request                   |
+| device_id       | Optional device identifier                  |
+| source          | Source of the request (e.g., web, app, api) |
+| created_at      | Timestamp when the star was created         |
+| updated_at      | Timestamp when the star was last updated    |
+
+## 🧪 Events
+
+| Event                 | Triggered When                       |
+| --------------------- | ------------------------------------ |
+| **StarAddEvent**      | A new star is created and saved      |
+| **StarRemovingEvent** | A star is about to be deleted        |
+| **StarRemovedEvent**  | A star has been successfully deleted |
+| **StarUpdatingEvent** | A star is about to be updated        |
+| **StarUpdatedEvent**  | A star has been successfully updated |
+
 
 ## Contributing
 
