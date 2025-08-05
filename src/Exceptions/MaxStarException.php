@@ -7,13 +7,13 @@ use Throwable;
 
 class MaxStarException extends Exception
 {
-    public function __construct(int $star, int $code = 400, ?Throwable $previous = null)
+    public function __construct(int $rate, int $code = 400, ?Throwable $previous = null)
     {
-        $maxStar = config('star.max_star');
+        $maxRate = config('star.max_rate');
 
-        parent::__construct(trans('star::base.exceptions.max_star', [
-            'maxStar' => $maxStar,
-            'star' => $star,
+        parent::__construct(trans('star::base.exceptions.max_rate', [
+            'max_rate' => $maxRate,
+            'rate' => $rate,
         ]), $code, $previous);
     }
 }

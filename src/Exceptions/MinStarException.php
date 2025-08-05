@@ -7,13 +7,13 @@ use Throwable;
 
 class MinStarException extends Exception
 {
-    public function __construct(int $star, int $code = 400, ?Throwable $previous = null)
+    public function __construct(int $rate, int $code = 400, ?Throwable $previous = null)
     {
-        $minStar = config('star.min_star');
+        $minRate = config('star.min_rate');
 
-        parent::__construct(trans('star::base.exceptions.min_star', [
-            'minStar' => $minStar,
-            'star' => $star,
+        parent::__construct(trans('star::base.exceptions.min_rate', [
+            'min_rate' => $minRate,
+            'rate' => $rate,
         ]), $code, $previous);
     }
 }
