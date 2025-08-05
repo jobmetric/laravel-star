@@ -20,24 +20,30 @@ class StarFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => null,
-            'starable_id' => null,
+            'starred_by_type' => null,
+            'starred_by_id' => null,
             'starable_type' => null,
-            'star' => $this->faker->numberBetween(1, 5)
+            'starable_id' => null,
+            'rate' => $this->faker->numberBetween(config('star.min_rate'), config('star.max_rate')),
+            'ip' => $this->faker->ipv4(),
+            'device_id' => $this->faker->uuid(),
+            'source' => $this->faker->randomElement(['web', 'mobile', 'api']),
         ];
     }
 
     /**
-     * set user id
+     * set starred by
      *
-     * @param int $user_id
+     * @param string $starred_by_type
+     * @param int $starred_by_id
      *
      * @return static
      */
-    public function setUserId(int $user_id): static
+    public function setStarredBy(string $starred_by_type, int $starred_by_id): static
     {
         return $this->state(fn(array $attributes) => [
-            'user_id' => $user_id
+            'starred_by_type' => $starred_by_type,
+            'starred_by_id' => $starred_by_id
         ]);
     }
 
@@ -58,16 +64,58 @@ class StarFactory extends Factory
     }
 
     /**
-     * set star
+     * set rate
      *
-     * @param int $star
+     * @param int $rate
      *
      * @return static
      */
-    public function setStar(int $star = 3): static
+    public function setRate(int $rate): static
     {
         return $this->state(fn(array $attributes) => [
-            'star' => $star
+            'rate' => $rate
+        ]);
+    }
+
+    /**
+     * set ip
+     *
+     * @param string $ip
+     *
+     * @return static
+     */
+    public function setIp(string $ip): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'ip' => $ip
+        ]);
+    }
+
+    /**
+     * set device id
+     *
+     * @param string $device_id
+     *
+     * @return static
+     */
+    public function setDeviceId(string $device_id): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'device_id' => $device_id
+        ]);
+    }
+
+    /**
+     * set source
+     *
+     * @param string $source
+     *
+     * @return static
+     */
+    public function setSource(string $source): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'source' => $source
         ]);
     }
 }
