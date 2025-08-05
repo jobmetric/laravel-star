@@ -4,15 +4,15 @@ namespace JobMetric\Star\Events;
 
 use JobMetric\Star\Models\Star;
 
-class StarForgetEvent
+class StarUpdatingEvent
 {
-    public Star $model;
-
     /**
      * Create a new event instance.
      */
-    public function __construct(Star $model)
+    public function __construct(
+        public Star $star,
+        public int  $rate
+    )
     {
-        $this->model = $model;
     }
 }

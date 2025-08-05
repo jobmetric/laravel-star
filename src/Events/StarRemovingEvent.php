@@ -4,15 +4,14 @@ namespace JobMetric\Star\Events;
 
 use JobMetric\Star\Models\Star;
 
-class StarStoredEvent
+class StarRemovingEvent
 {
-    public Star $model;
-
     /**
      * Create a new event instance.
      */
-    public function __construct(Star $model)
+    public function __construct(
+        public Star $star
+    )
     {
-        $this->model = $model;
     }
 }
