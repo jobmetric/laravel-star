@@ -2,211 +2,281 @@
 
 namespace JobMetric\Star;
 
+use DB;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
-use JobMetric\Star\Events\StarForgetEvent;
-use JobMetric\Star\Events\StarStoredEvent;
-use JobMetric\Star\Events\StarUpdateEvent;
+use Illuminate\Support\Collection;
+use JobMetric\Star\Events\StarAddEvent;
 use JobMetric\Star\Exceptions\MaxStarException;
 use JobMetric\Star\Exceptions\MinStarException;
 use JobMetric\Star\Models\Star;
 use Throwable;
 
-/**
- * @method morphOne(string $class, string $string)
- * @method morphMany(string $class, string $string)
- */
 trait HasStar
 {
     /**
-     * star has one relationship
-     *
-     * @return MorphOne
-     */
-    public function starTo(): MorphOne
-    {
-        return $this->morphOne(Star::class, 'starable');
-    }
-
-    /**
-     * star has many relationships
+     * Get all star ratings for this model.
      *
      * @return MorphMany
      */
-    public function starsTo(): MorphMany
+    public function stars(): MorphMany
     {
         return $this->morphMany(Star::class, 'starable');
     }
 
     /**
-     * store star
+     * Add or update a star rating.
      *
-     * @param int $user_id
-     * @param int $star
+     * @param int $rate
+     * @param Model|null $starredBy
+     * @param array $options
      *
-     * @return array
+     * @return Star
      * @throws Throwable
      */
-    public function starIt(int $user_id, int $star = 3): array
+    public function addStar(int $rate, ?Model $starredBy = null, array $options = []): Star
     {
-        $minStar = config('star.min_star');
-        $maxStar = config('star.max_star');
+        $min = config('star.min_star', 1);
+        $max = config('star.max_star', 5);
 
-        if ($star < $minStar) {
-            throw new MinStarException($star);
+        if ($rate < $min) {
+            throw new MinStarException($rate);
         }
 
-        if ($star > $maxStar) {
-            throw new MaxStarException($star);
+        if ($rate > $max) {
+            throw new MaxStarException($rate);
         }
 
-        /* @var Star $userStar */
-        $userStar = $this->starTo()->where('user_id', $user_id)->first();
-
-        if ($userStar) {
-            $typeData = 'update';
-
-            $this->starTo()->where('user_id', $user_id)->update(['star' => $star]);
-
-            event(new StarUpdateEvent($userStar, $star));
-        } else {
-            $typeData = 'store';
-
-            $star = $this->starTo()->create([
-                'user_id' => $user_id,
-                'star' => $star
-            ]);
-
-            event(new StarStoredEvent($star));
-        }
-
-        return [
-            'type' => $typeData,
-            'star_count' => $this->starCount(),
-            'star_avg' => $this->starAvg()
+        $data = [
+            'rate' => $rate,
+            'ip' => $options['ip'] ?? request()->ip(),
+            'device_id' => $options['device_id'] ?? null,
+            'source' => $options['source'] ?? null,
         ];
+
+        if ($starredBy instanceof Model) {
+            $data['starred_by_type'] = $starredBy::class;
+            $data['starred_by_id'] = $starredBy->getKey();
+        }
+
+        $query = $this->stars()->where(function ($q) use ($data) {
+            if (isset($data['starred_by_type'], $data['starred_by_id'])) {
+                $q->where('starred_by_type', $data['starred_by_type'])
+                    ->where('starred_by_id', $data['starred_by_id']);
+            } elseif (!empty($data['device_id'])) {
+                $q->where('device_id', $data['device_id']);
+            }
+        });
+
+        /** @var Star|null $existing */
+        $existing = $query->first();
+
+        if ($existing) {
+            if ($existing->rate === $rate) {
+                return $existing;
+            }
+
+            $existing->update($data);
+
+            return $existing;
+        }
+
+        $star = $this->stars()->create($data);
+
+        event(new StarAddEvent($star));
+
+        return $star;
+    }
+
+
+    /**
+     * Remove a star.
+     *
+     * @param Model|null $starredBy
+     * @param string|null $device_id
+     *
+     * @return bool
+     */
+    public function removeStar(?Model $starredBy = null, ?string $device_id = null): bool
+    {
+        /**
+         * @var Star|null $star
+         */
+        $star = $this->findStar($starredBy, $device_id)->first();
+
+        if (!$star) return false;
+
+        $deleted = $star->delete();
+
+        return $deleted > 0;
     }
 
     /**
-     * star count
+     * Check if this model has been starred.
+     *
+     * @param Model|null $starredBy
+     * @param string|null $device_id
+     *
+     * @return bool
+     */
+    public function hasStar(?Model $starredBy = null, ?string $device_id = null): bool
+    {
+        return $this->findStar($starredBy, $device_id)->exists();
+    }
+
+    /**
+     * Count of all stars.
      *
      * @return int
-     * @throws Throwable
      */
     public function starCount(): int
     {
-        return $this->starTo()->count();
+        return $this->stars()->count();
     }
 
     /**
-     * star average
+     * Average of all star ratings.
      *
      * @return float
-     * @throws Throwable
      */
     public function starAvg(): float
     {
-        return (float) $this->starTo()->avg('star');
+        return (float) $this->stars()->avg('rate');
     }
 
     /**
-     * load star count after a model loaded
+     * Grouped summary of ratings.
      *
-     * @return static
+     * @return Collection
      */
-    public function withStarCount(): static
+    public function starSummary(): Collection
     {
-        $this->loadCount(['starTo as star_count']);
-
-        return $this;
+        return $this->stars()
+            ->select('rate', DB::raw('count(*) as total'))
+            ->groupBy('rate')
+            ->pluck('total', 'rate');
     }
 
     /**
-     * load star avg after a model loaded
+     * Get latest stars.
      *
-     * @return static
+     * @param int $limit
+     * @return EloquentCollection
      */
-    public function withStarAvg(): static
+    public function latestStars(int $limit = 5): EloquentCollection
     {
-        $this->loadAvg(['starTo as star_avg'], 'star');
-
-        return $this;
+        return $this->stars()->latest()->take($limit)->get();
     }
 
     /**
-     * load star or disStar after model loaded
+     * Remove all stars (by actor or device).
      *
-     * @return static
+     * @param Model|null $starredBy
+     * @param string|null $device_id
+     * @return int
      */
-    public function withStar(): static
+    public function forgetStars(?Model $starredBy = null, ?string $device_id = null): int
     {
-        $this->load('starTo');
+        $query = $this->findStar($starredBy, $device_id);
 
-        return $this;
+        $stars = $query->get();
+
+        foreach ($stars as $star) {
+            $star->delete();
+        }
+
+        return $stars->count();
     }
 
     /**
-     * load stars after models loaded
+     * Get internal star query for given actor/device.
      *
-     * @return static
+     * @param Model|null $starredBy
+     * @param string|null $device_id
+     *
+     * @return MorphMany
      */
-    public function withStars(): static
+    private function findStar(?Model $starredBy = null, ?string $device_id = null): MorphMany
     {
-        $this->load('starsTo');
+        $query = $this->stars();
 
-        return $this;
+        $query->where(function ($q) use ($starredBy, $device_id) {
+            if ($starredBy instanceof Model) {
+                $q->where([
+                    'starred_by_type' => $starredBy::class,
+                    'starred_by_id' => $starredBy->getKey(),
+                ]);
+            }
+
+            if ($device_id) {
+                $q->orWhere('device_id', $device_id);
+            }
+        });
+
+        return $query;
     }
 
     /**
-     * is stared by user
+     * Check if this model has a specific star rating.
      *
-     * @param int $user_id
+     * @param int $rate
+     * @param Model|null $starredBy
+     * @param string|null $device_id
+     *
+     * @return bool
+     */
+    public function isRatedAs(int $rate, ?Model $starredBy = null, ?string $device_id = null): bool
+    {
+        return $this->findStar($starredBy, $device_id)
+            ->where('rate', $rate)
+            ->exists();
+    }
+
+    /**
+     * Get the star value given by actor or device.
+     *
+     * @param Model|null $starredBy
+     * @param string|null $device_id
      *
      * @return int|null
      */
-    public function isStaredStatusBy(int $user_id): ?int
+    public function getRatedValue(?Model $starredBy = null, ?string $device_id = null): ?int
     {
-        /* @var Star $star */
-        $star = $this->starTo()->where('user_id', $user_id)->first();
+        return $this->findStar($starredBy, $device_id)->value('rate');
+    }
 
-        return $star?->star ?? null;
+
+    /**
+     * Check if the rating is above a certain value.
+     *
+     * @param int $value
+     * @param Model|null $starredBy
+     * @param string|null $device_id
+     *
+     * @return bool
+     */
+    public function isRatedAbove(int $value, ?Model $starredBy = null, ?string $device_id = null): bool
+    {
+        return $this->findStar($starredBy, $device_id)
+            ->where('rate', '>', $value)
+            ->exists();
     }
 
     /**
-     * forget star
+     * Check if the rating is below a certain value.
      *
-     * @param int $user_id
+     * @param int $value
+     * @param Model|null $starredBy
+     * @param string|null $device_id
      *
-     * @return static
+     * @return bool
      */
-    public function forgetStar(int $user_id): static
+    public function isRatedBelow(int $value, ?Model $starredBy = null, ?string $device_id = null): bool
     {
-        /* @var Star $star */
-        $star = $this->starTo()->where('user_id', $user_id)->first();
-
-        if ($star) {
-            $star->delete();
-
-            event(new StarForgetEvent($star));
-        }
-
-        return $this;
+        return $this->findStar($starredBy, $device_id)
+            ->where('rate', '<', $value)
+            ->exists();
     }
 
-    /**
-     * forget stars
-     *
-     * @return static
-     */
-    public function forgetStars(): static
-    {
-        /* @var Star $star */
-        $this->starsTo()->get()->each(function ($star) {
-            $star->delete();
-
-            event(new StarForgetEvent($star));
-        });
-
-        return $this;
-    }
 }
