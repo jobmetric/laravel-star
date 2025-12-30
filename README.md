@@ -17,209 +17,93 @@
 
 # Laravel Star
 
-A modern, flexible, and test-covered Laravel package that allows your models to handle **star rating** functionality (e.g., 1 to 5 stars).  
-This package provides a clean API for both **starable** (e.g., articles, posts) and **starrer** (e.g., users, devices) models.
+**Build Star Ratings. Simply and Powerfully.**
 
----
+Laravel Star simplifies star rating management in Laravel applications. Stop creating separate tables for each rating type and start building rating systems with confidence. It provides a modern, flexible package that allows your Eloquent models to handle star rating functionality (e.g., 1 to 5 stars)—perfect for building e-commerce product ratings, review systems, and content quality assessment. This is where powerful rating management meets developer-friendly simplicity—giving you complete control over star ratings without the complexity.
 
-## 💾 Installation
+## Why Laravel Star?
 
-Install via composer:
+### Simple API
+
+Laravel Star provides a clean, intuitive API for managing star ratings. Add, update, remove, and query ratings with simple method calls—no complex queries or manual relationship management.
+
+### Flexible Rating Scale
+
+Support any rating scale you need: 1-5 stars, 0-10, or any custom range. The package is fully configurable to match your application's requirements.
+
+### Anonymous Ratings
+
+Support both authenticated user ratings and anonymous device-based ratings. Perfect for applications where users can rate without logging in, or where you need to track ratings by device.
+
+### Polymorphic Relationships
+
+Use star ratings on any Eloquent model through polymorphic relationships. Products, articles, reviews, services—anything can be starable, and any model can be a starrer.
+
+## What is Star Rating Management?
+
+Star rating management is the process of allowing users or devices to rate content using a numeric scale (typically 1-5 stars). Traditional approaches often involve:
+
+- Creating separate tables for each rating type
+- Writing complex queries to calculate averages
+- Managing rating state manually
+- Duplicating code across different models
+
+Laravel Star solves these challenges by providing:
+
+- **Unified System**: Single table for all star ratings
+- **Polymorphic Design**: Works with any model
+- **Simple API**: Clean methods for all operations
+- **Event Integration**: Built-in events for extensibility
+- **Query Helpers**: Easy methods for common queries
+
+Consider an e-commerce platform where customers can rate products from 1 to 5 stars. With Laravel Star, you can add ratings programmatically, calculate average ratings automatically, get rating distributions, track ratings by user or device, and integrate with notification systems through events. The power of star rating management lies not only in flexible rating scales but also in making it easy to query, track, and manage throughout your application.
+
+## What Awaits You?
+
+By adopting Laravel Star, you will:
+
+- **Build rating systems** - Add star ratings to products, articles, and any content
+- **Simplify rating management** - Single API for all rating operations
+- **Support anonymous users** - Track ratings by device without authentication
+- **Improve user trust** - Display average ratings and rating distributions
+- **Enable flexible scales** - Use any rating scale that fits your needs
+- **Maintain clean code** - Simple, intuitive API that follows Laravel conventions
+
+## Quick Start
+
+Install Laravel Star via Composer:
 
 ```bash
 composer require jobmetric/laravel-star
 ```
 
-Then publish and run the migration:
+Then publish the migration and run it:
 
 ```bash
+php artisan vendor:publish --tag=star-migrations
 php artisan migrate
 ```
 
----
+## Documentation
 
-## ✨ Usage
+Ready to transform your Laravel applications? Our comprehensive documentation is your gateway to mastering Laravel Star:
 
-### Step 1: Add `HasStar` to your starable model (e.g., `Article`)
+**[📚 Read Full Documentation →](https://jobmetric.github.io/packages/laravel-star/)**
 
-```php
-use JobMetric\Star\HasStar;
+The documentation includes:
 
-class Article extends Model
-{
-    use HasStar;
-}
-```
-
-### Step 2: Add `CanStar` to your starrer model (e.g., `User`)
-
-```php
-use JobMetric\Star\CanStar;
-
-class User extends Model
-{
-    use CanStar;
-}
-```
-
----
-
-## ✅ Main Features
-
-### Add or Update a Star Rating
-
-```php
-$article->addStar(4, $user);
-```
-
-You can also pass extra options like device ID:
-
-```php
-$article->addStar(5, null, ['device_id' => 'abc-123']);
-```
-
-### Remove a Star Rating
-
-```php
-$article->removeStar($user);
-$article->removeStar(null, 'abc-123');
-```
-
-### Check if a Star Exists
-
-```php
-$article->hasStar($user); // true/false
-```
-
-### Get Star Count and Average
-
-```php
-$article->starCount(); // e.g., 10
-$article->starAvg();   // e.g., 4.3
-```
-
-### Get Summary
-
-```php
-$article->starSummary(); 
-// => collect([5 => 3, 4 => 5, 3 => 2])
-```
-
-### Get Latest Stars
-
-```php
-$article->latestStars(5); // returns latest 5 stars
-```
-
-### Forget Stars (All for a user or device)
-
-```php
-$article->forgetStars($user);
-```
-
----
-
-## 🎯 Conditional Methods
-
-### Rating Checks
-
-```php
-$article->isRatedAs(4, $user);     // true
-$article->isRatedAbove(3, $user);  // true
-$article->isRatedBelow(5, $user);  // true
-```
-
-### Get Rated Value
-
-```php
-$article->getRatedValue($user); // e.g., 4
-```
-
----
-
-## 📦 CanStar Feature Set
-
-### Check if a model has starred something
-
-```php
-$user->hasStarred($article); // true/false
-```
-
-### Get rate value
-
-```php
-$user->starredRate($article); // e.g., 5
-```
-
-### Remove star from a model
-
-```php
-$user->removeStarFrom($article);
-```
-
-### Count by Rate or Total
-
-```php
-$user->countStarGiven(5); // e.g., 2
-$user->totalStarsGiven(); // e.g., 12
-```
-
-### Summary of Ratings Given
-
-```php
-$user->starSummary(); 
-// => collect([5 => 4, 3 => 2])
-```
-
-### Models that user has starred
-
-```php
-$user->starredItems(); // Collection of models
-$user->starredItems(Article::class);
-```
-
-### Stars to specific model type
-
-```php
-$user->starsToType(Article::class); // Collection of stars
-```
-
-### Latest Stars Given
-
-```php
-$user->latestStarsGiven(5); // Collection of latest 5 stars
-```
-
-## 🧱 Star Model Columns
-
-| Field           | Description                                 |
-|-----------------|---------------------------------------------|
-| starable_type   | Polymorphic class of starable (e.g., Post)  |
-| starable_id     | ID of the starable model                    |
-| starred_by_type | Polymorphic class of starrer (e.g., User)   |
-| starred_by_id   | ID of the starrer                           |
-| rate            | Star rating (e.g., 1 to 5)                  |
-| ip              | IP address of the request                   |
-| device_id       | Optional device identifier                  |
-| source          | Source of the request (e.g., web, app, api) |
-| created_at      | Timestamp when the star was created         |
-| updated_at      | Timestamp when the star was last updated    |
-
-## 🧪 Events
-
-| Event                 | Triggered When                       |
-| --------------------- | ------------------------------------ |
-| **StarAddEvent**      | A new star is created and saved      |
-| **StarRemovingEvent** | A star is about to be deleted        |
-| **StarRemovedEvent**  | A star has been successfully deleted |
-| **StarUpdatingEvent** | A star is about to be updated        |
-| **StarUpdatedEvent**  | A star has been successfully updated |
-
+- **Getting Started** - Quick introduction and installation guide
+- **HasStar** - Trait for models that can receive star ratings
+- **CanStar** - Trait for models that can give star ratings
+- **Star Model** - Eloquent model for storing star ratings
+- **Events** - Hook into rating lifecycle
+- **Querying** - Methods for counting, averaging, and summarizing ratings
+- **Real-World Examples** - See how it works in practice
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel Star! The contribution guide can be found in the [CONTRIBUTING.md](https://github.com/jobmetric/laravel-star/blob/master/CONTRIBUTING.md).
+Thank you for participating in `laravel-star`. A contribution guide can be found [here](CONTRIBUTING.md).
 
 ## License
 
-The MIT License (MIT). Please see [License File](https://github.com/jobmetric/laravel-star/blob/master/LICENCE.md) for more information.
+The `laravel-star` is open-sourced software licensed under the MIT license. See [License File](LICENCE.md) for more information.
