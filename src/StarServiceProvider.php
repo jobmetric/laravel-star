@@ -18,4 +18,18 @@ class StarServiceProvider extends PackageCoreServiceProvider
             ->hasTranslation()
             ->hasMigration();
     }
+    /**
+     * Register committed business outcome definitions alongside legacy events.
+     *
+     * @return void
+     */
+    public function afterBootPackage(): void
+    {
+        if ($this->app->bound('EventRegistry')) {
+            $registry = $this->app->make('EventRegistry');
+            $registry->register(\JobMetric\Star\Events\Star\StarStoreCommittedEvent::class);
+            $registry->register(\JobMetric\Star\Events\Star\StarUpdateCommittedEvent::class);
+            $registry->register(\JobMetric\Star\Events\Star\StarDeleteCommittedEvent::class);
+        }
+    }
 }

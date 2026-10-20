@@ -69,6 +69,9 @@ trait HasStar
             $this->starTo()->where('user_id', $user_id)->update(['star' => $star]);
 
             event(new StarUpdateEvent($userStar, $star));
+        if ((int) $userStar->star !== (int) $star) {
+            app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Star\Events\Star\StarUpdateCommittedEvent($userStar->starable_type, (int) $userStar->starable_id, (int) $userStar->user_id), $userStar->getConnectionName());
+        }
         } else {
             $typeData = 'store';
 
@@ -78,6 +81,9 @@ trait HasStar
             ]);
 
             event(new StarStoredEvent($star));
+        if ($star->exists) {
+            app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Star\Events\Star\StarStoreCommittedEvent($star->starable_type, (int) $star->starable_id, (int) $star->user_id), $star->getConnectionName());
+        }
         }
 
         return [
@@ -188,6 +194,9 @@ trait HasStar
             $star->delete();
 
             event(new StarForgetEvent($star));
+        if (! $star->exists) {
+            app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Star\Events\Star\StarDeleteCommittedEvent($star->starable_type, (int) $star->starable_id, (int) $star->user_id), $star->getConnectionName());
+        }
         }
 
         return $this;
@@ -205,6 +214,9 @@ trait HasStar
             $star->delete();
 
             event(new StarForgetEvent($star));
+        if (! $star->exists) {
+            app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Star\Events\Star\StarDeleteCommittedEvent($star->starable_type, (int) $star->starable_id, (int) $star->user_id), $star->getConnectionName());
+        }
         });
 
         return $this;
